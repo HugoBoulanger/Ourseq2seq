@@ -42,28 +42,35 @@ class Decoder(nn.Module):
         self.out = nn.Linear(hidden_size, vocab_size)
 
     def _loop(self, h_t, inp):
-        out, h_next = self.gru(inp , h_t)
+        out, h_next = self.gru(inp, h_t)
         pred = self.out(out)
         return pred, out, h_next
 
-    def teacher_force(self, inputs, h_0):
+    def teacher_force(self, inputs, h_0, batch_size):
         inputs.to(self.dev)
         embed = self.embedding(inputs)
         output = []
         h_t = h_0
         for i in range(len(embed[0])):
             pred, out, h_t = self._loop(h_t, embed[:, i])
-            output.append(pred.argmax().numpy())
+            output.append(pred)
         return output
 
-    def forward(self, h_0, max_n):
-        sos = self.embedding(torch.LongTensor(self.sos).to(self.dev))
-        output = []
+    def forward(self, h_0, max_n, batch_size=1):
+        sos = self.embedding(torch.LongTensor([[self.sos] for i in range(batch_size)]).to(self.dev))
+        output = [[] for i in range(batch_size)]
         pred, out, h_t = self._loop(h_0, sos)
-        output.append(pred.argmax().numpy())
+        t_pred = torch.zeros([batch_size, 1], dtype=torch.long, device=self.dev)
+        print(pred.shape)
+        for i in range(batch_size):
+            t_pred[i][0] = pred[i][0].argmax()
+            output[i].append(t_pred[i][0][0].to('cpu').numpy())
+        print(t_pred)
         n = 1
-        while output[-1] != self.eos or n > max_n:
-            pred, out, h_t = self._loop(h_t, out)
-            output.append(pred.argmax().numpy())
+        while (output[:][-1] != self.eos or output[:][-1] != self.pad) and n < max_n:
+            pred, out, h_t = self._loop(h_t, self.embedding(t_pred))
+            for i in range(batch_size):
+                t_pred[i][0] = pred[i][0].argmax()
+                output[i].append(t_pred[i][0][0].to('cpu').numpy())
             n += 1
-        return output
+        return output, h_t

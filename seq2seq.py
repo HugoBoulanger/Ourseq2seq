@@ -1,5 +1,6 @@
 import torch.nn as nn
 import torch
+import numpy as np
 from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
@@ -46,14 +47,24 @@ class Decoder(nn.Module):
         pred = self.out(out)
         return pred, out, h_next
 
-    def teacher_force(self, inputs, h_0, batch_size):
-        inputs.to(self.dev)
-        embed = self.embedding(inputs)
+    def teacher_force(self, inputs, h_0, lengths):
+        inputs = inputs.transpose(1, 2)
+        order = [i for i in range(inputs.shape[0])]
+        z = list(zip(lengths, inputs, order))
+        z.sort(key=lambda x: x[0], reverse=True)
+        lengths, inp, order = zip(*z)
+        inp = torch.cat(inp[:], 0)
+        inp = inp.reshape([inp.shape[0], inp.shape[1], 1]).to(self.dev)
+        embed = self.embedding(inp)
         output = []
         h_t = h_0
         for i in range(len(embed[0])):
             pred, out, h_t = self._loop(h_t, embed[:, i])
             output.append(pred)
+        output = torch.cat(output, 1)
+        z = list(zip(order, output))
+        z.sort(key=lambda x: x[0], reverse=True)
+        order, output = zip(*z)
         return output
 
     def forward(self, h_0, max_n, batch_size=1):

@@ -22,6 +22,9 @@ class Encoder(nn.Module):
         embedded = self.embedding(i)
         out = pack_padded_sequence(embedded, l, batch_first=True)
         return self.gru(out)
+        
+    def load_states(self,states):
+        self.load_state_dict(states)
 
 
 class Decoder(nn.Module):
@@ -72,11 +75,11 @@ class Decoder(nn.Module):
         output = [[] for i in range(batch_size)]
         pred, out, h_t = self._loop(h_0, sos)
         t_pred = torch.zeros([batch_size, 1], dtype=torch.long, device=self.dev)
-        print(pred.shape)
+        #print(pred.shape)
         for i in range(batch_size):
             t_pred[i][0] = pred[i][0].argmax()
             output[i].append(t_pred[i][0][0].to('cpu').numpy())
-        print(t_pred)
+        #print(t_pred)
         n = 1
         while (output[:][-1] != self.eos or output[:][-1] != self.pad) and n < max_n:
             pred, out, h_t = self._loop(h_t, self.embedding(t_pred))
@@ -85,3 +88,6 @@ class Decoder(nn.Module):
                 output[i].append(t_pred[i][0][0].to('cpu').numpy())
             n += 1
         return output, h_t
+        
+    def load_states(self,states):
+        self.load_state_dict(states)

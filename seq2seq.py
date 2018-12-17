@@ -81,12 +81,19 @@ class Decoder(nn.Module):
             output[i].append(t_pred[i][0][0].to('cpu').numpy())
         #print(t_pred)
         n = 1
-        while (output[:][-1] != self.eos or output[:][-1] != self.pad) and n < max_n:
-            pred, out, h_t = self._loop(h_t, self.embedding(t_pred))
-            for i in range(batch_size):
-                t_pred[i][0] = pred[i][0].argmax()
-                output[i].append(t_pred[i][0][0].to('cpu').numpy())
-            n += 1
+        if(batch_size == 1):
+            while ((output[0][-1] != self.eos) and (output[0][-1] != self.pad)) and (n < max_n):
+                pred, out, h_t = self._loop(h_t, self.embedding(t_pred))
+                t_pred[0][0] = pred[0][0].argmax()
+                output[0].append(t_pred[0][0][0].to('cpu').numpy())
+                n += 1
+        else:
+            while ((output[:][-1][0] != self.eos and output[:][-1][0] != self.pad)) and (n < max_n):
+                pred, out, h_t = self._loop(h_t, self.embedding(t_pred))
+                for i in range(batch_size):
+                    t_pred[i][0] = pred[i][0].argmax()
+                    output[i].append(t_pred[i][0][0].to('cpu').numpy())
+                n += 1
         return output, h_t
         
     def load_states(self,states):

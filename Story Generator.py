@@ -120,6 +120,7 @@ def posttreatement(phrase_c,vocab_inv):
     vocab_inv : dictionnaire int -> word
     """
     phrase = convert(phrase_c,vocab_inv)
+    phrase[0].reverse()
     return " ".join(phrase[0])
 
 ##Fonctions d'Application
@@ -163,7 +164,7 @@ def callGRU(encoder,decoder,text,vocab,context = None,taille = 5):
     """
     ma = 1000 #taille maximal d'une séquence
     text_c = pretreatement(text,vocab,vocab[pad],ma)[0]
-    var_taille = random.randint(0,2*taille) - taille
+    var_taille = 0#random.randint(0,2*taille) - taille
     # print(f"nombre de mots : {taille} + {var_taille}")
     # print(f"text_c : {text_c}")
     # Transformation en Tensor (prise en compte du contexte
@@ -180,7 +181,7 @@ def callGRU(encoder,decoder,text,vocab,context = None,taille = 5):
         
 def Main(vocab,vocab_inv):
     i = 0
-    arret = False
+    arret = False #peut-être mis à True par le programme (étape 3)
     contexte = None
     #préparation GRU
     enc = Encoder(len(vocab), 100, 100, 2, 'cuda', vocab[pad])
@@ -190,25 +191,14 @@ def Main(vocab,vocab_inv):
     #chargement des poids
     path_enc = "C:/Users/Kardas/Documents/WIA-Project/model/encoder_{e}.pkl"
     path_dec = "C:/Users/Kardas/Documents/WIA-Project/model/decoder_{e}.pkl"
-    
-    # original saved file with DataParallel
     encoder_state = torch.load(path_enc)
-    #print(f"encoder_state : {type(encoder_state)} | {len(encoder_state)} | {dict(encoder_state).keys()} ")#| {encoder_state['out.weight']} | {encoder_state['out.bias']}")
-    # del encoder_state['out.weight']
-    # del encoder_state['out.bias']
-    
-    #encoder_state = torch.load(path_enc)
     decoder_state = torch.load(path_dec)
-    
-    #print(f"poids encoder : {nn.state_dict(Encoder).keys()}")
     enc.load_states(encoder_state)
     enc.eval()
     dec.load_states(dict(decoder_state))
     dec.eval()
-    # opt_enc = torch.optim.SparseAdam(enc.parameters())
-    # opt_dec = torch.optim.SparseAdam(dec.parameters())
     #paramétrage de la taille de la prédiction
-    taille = int(input("nombre de mots prédites à la fois ? : "))
+    taille = int(input("nombre de mots prédis à la fois ? : "))
     while(not arret):
         phrase = takeInput(i)
         exit_c, contexte = callGRU(enc,dec,phrase,vocab,contexte,taille)
@@ -228,13 +218,17 @@ vocab_inv = {}
 vocab = pickle.load(open('C:/Users/Kardas/Documents/WIA-Project/data/vocab.pkl', 'rb'))
 for (k,v) in vocab.items():
     vocab_inv[v] = k
-vocab_inv[len(vocab)] = ""
+# vocab_inv[len(vocab)] = ""
 # vocab[pad] = 0
-vocab_inv[len(vocab)] = sos
+# vocab_inv[len(vocab)] = sos
 # vocab[sos] = len(vocab)
-vocab_inv[len(vocab)] = eos
+# vocab_inv[len(vocab)] = eos
 # vocab[eos] = len(vocab)
 print(f"vocab : {len(vocab)}\nvocab_inv : {len(vocab_inv)}\n")
 
 ##Launch Appli
 Main(vocab,vocab_inv)
+#test : 
+# Drowling in slow motion
+# MY LIFE IS POTATOES !
+# The first TechnoMage

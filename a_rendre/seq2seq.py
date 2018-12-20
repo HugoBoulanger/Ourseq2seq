@@ -5,7 +5,19 @@ from torch.nn.utils.rnn import pack_padded_sequence, pad_packed_sequence
 
 
 class Encoder(nn.Module):
+    '''
+    Encoder network for the seq2seq model using GRU layers
+    '''
     def __init__(self, vocab_size, embed_dim, hidden_size, layers, dev, pad):
+        '''
+
+        :param vocab_size: size of the vocabulary
+        :param embed_dim: dimension you want to give to the embedding layer
+        :param hidden_size: dimension of the context tensor
+        :param layers: number of GRU layers
+        :param dev: device on which to run
+        :param pad: vocabulary[pad]
+        '''
         super(Encoder, self).__init__()
         self.layers = layers
         self.vocab_size = vocab_size
@@ -18,6 +30,12 @@ class Encoder(nn.Module):
         self.gru = nn.GRU(embed_dim, hidden_size, num_layers=layers, batch_first=True)
 
     def forward(self, inputs, lengths):
+        '''
+
+        :param inputs: input tensor of shape [batch_size, sample_size(padded), 1]
+        :param lengths: tensor of shape [batch_size, 1, 1]
+        :return: output of the GRU layer
+        '''
         i, l = inputs.to(self.dev), lengths.to(self.dev)
         embedded = self.embedding(i)
         out = pack_padded_sequence(embedded, l, batch_first=True)
@@ -28,7 +46,22 @@ class Encoder(nn.Module):
 
 
 class Decoder(nn.Module):
+    '''
+    Decoder network for the seq2seq model using GRU layers
+    '''
     def __init__(self, vocab_size, embed_dim, hidden_size, layers, dev, pad, sos, eos, unk):
+        '''
+
+        :param vocab_size: length of the vocabulary
+        :param embed_dim: dimension of the embedding you want to train
+        :param hidden_size: dimension of the context tensor
+        :param layers: number of GRU layers
+        :param dev: vocabulary[dev]
+        :param pad: vocabulary[pad]
+        :param sos: vocabulary[sos]
+        :param eos: vocabulary[eos]
+        :param unk: vocabulary[unk]
+        '''
         super(Decoder, self).__init__()
         self.layers = layers
         self.vocab_size = vocab_size
@@ -48,11 +81,24 @@ class Decoder(nn.Module):
         self.soft = nn.Softmax()
 
     def _loop(self, h_t, inp):
+        '''
+        Core of the forward or teacher_force method
+        :param h_t: hidden state at time t
+        :param inp: input batch of shape [batch_size, 1, 1]
+        :return:
+        '''
         out, h_next = self.gru(inp, h_t)
         pred = self.soft(self.out(out))
         return pred, out, h_next
 
     def teacher_force(self, inputs, h_0, lengths):
+        '''
+
+        :param inputs:
+        :param h_0:
+        :param lengths:
+        :return:
+        '''
         inputs = inputs.transpose(1, 2)
         order = [i for i in range(inputs.shape[0])]
         z = list(zip(lengths, inputs, order))
@@ -73,6 +119,13 @@ class Decoder(nn.Module):
         return output
 
     def forward(self, h_0, max_n, batch_size=1):
+        '''
+        
+        :param h_0:
+        :param max_n:
+        :param batch_size:
+        :return:
+        '''
         sos = self.embedding(torch.LongTensor([[self.sos] for i in range(batch_size)]).to(self.dev))
         output = [[] for i in range(batch_size)]
         pred, out, h_t = self._loop(h_0, sos)
@@ -89,6 +142,7 @@ class Decoder(nn.Module):
                 t_pred[0][0] = pred[0][0].argmax()
                 if t_pred[0][0][0].to('cpu').item() == self.unk:
                     pred[0][0][t_pred[0][0][0].item()] = 0
+                    print(pred)
                     t_pred[0][0] = pred[0][0].argmax()
                 output[0].append(t_pred[0][0][0].to('cpu').numpy())
                 n += 1

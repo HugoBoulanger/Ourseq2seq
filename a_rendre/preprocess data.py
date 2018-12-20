@@ -12,7 +12,7 @@ sos = '<sos>'
 eos = '<eos>'
 
 # Max size of the target
-tgt_max = 100
+tgt_max = 50
 
 def read_file(path, max_lines=0):
     '''
@@ -42,8 +42,8 @@ def read_file(path, max_lines=0):
 
 
 if __name__=='__main__':
-    trn_src = read_file(train_source, max_lines=50000)
-    trn_tgt = read_file(train_target, max_lines=50000)
+    trn_src = read_file(train_source, max_lines=25000)
+    trn_tgt = read_file(train_target, max_lines=25000)
     tst_src = read_file(test_source)
     tst_tgt = read_file(test_target)
 
@@ -56,6 +56,7 @@ if __name__=='__main__':
         trn_src[i] = clean_str(trn_src[i]).split()[3:]
         trn_tgt[i] = clean_str(trn_tgt[i]).split()[3:tgt_max + 3]
 
+    #Vocabulary preprocessing
     vocab, count = voc(trn_src + trn_tgt)
     vocab = clean_voc(vocab, count, 2)
 
@@ -66,6 +67,7 @@ if __name__=='__main__':
 
     pickle.dump(vocab, open('data/vocab.pkl', 'wb'))
 
+    #Testing set preprocessing
     tst_src_c = convert(tst_src, vocab, unk)
     tst_tgt_c = convert(tst_tgt, vocab, unk)
 
@@ -84,6 +86,7 @@ if __name__=='__main__':
     pickle.dump(l_tst_tgt, open('data/l_tst_tgt.pkl', 'wb'))
     pickle.dump(tst_tgt_p, open('data/tst_tgt_p.pkl', 'wb'))
 
+    #Training set preprocessing
     trn_src_c = convert(trn_src, vocab, unk)
     trn_tgt_c = convert(trn_tgt, vocab, unk)
 
@@ -101,3 +104,4 @@ if __name__=='__main__':
     pickle.dump(trn_src_p, open('data/trn_src_p.pkl', 'wb'))
     pickle.dump(l_trn_tgt, open('data/l_trn_tgt.pkl', 'wb'))
     pickle.dump(trn_tgt_p, open('data/trn_tgt_p.pkl', 'wb'))
+

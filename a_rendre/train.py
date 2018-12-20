@@ -16,15 +16,15 @@ batch_size = 12
 
 vocab = pickle.load(open('vocab.pkl', 'rb'))
 
-l_tst_src = pickle.load(open('l_tst_src.pkl', 'rb'))
-tst_src_p = pickle.load(open('tst_src_p.pkl', 'rb'))
-l_tst_tgt = pickle.load(open('l_tst_tgt.pkl', 'rb'))
-tst_tgt_p = pickle.load(open('tst_tgt_p.pkl', 'rb'))
+l_tst_src = pickle.load(open('data/l_tst_src.pkl', 'rb'))
+tst_src_p = pickle.load(open('data/tst_src_p.pkl', 'rb'))
+l_tst_tgt = pickle.load(open('data/l_tst_tgt.pkl', 'rb'))
+tst_tgt_p = pickle.load(open('data/tst_tgt_p.pkl', 'rb'))
 
-l_trn_src = pickle.load(open('l_trn_src.pkl', 'rb'))
-trn_src_p = pickle.load(open('trn_src_p.pkl', 'rb'))
-l_trn_tgt = pickle.load(open('l_trn_tgt.pkl', 'rb'))
-trn_tgt_p = pickle.load(open('trn_tgt_p.pkl', 'rb'))
+l_trn_src = pickle.load(open('data/l_trn_src.pkl', 'rb'))
+trn_src_p = pickle.load(open('data/trn_src_p.pkl', 'rb'))
+l_trn_tgt = pickle.load(open('data/l_trn_tgt.pkl', 'rb'))
+trn_tgt_p = pickle.load(open('data/trn_tgt_p.pkl', 'rb'))
 
 tst_src_t = torch.LongTensor(tst_src_p)
 tst_tgt_t = torch.LongTensor(tst_tgt_p)

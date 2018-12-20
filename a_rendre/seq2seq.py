@@ -93,11 +93,12 @@ class Decoder(nn.Module):
 
     def teacher_force(self, inputs, h_0, lengths):
         '''
-
-        :param inputs:
-        :param h_0:
-        :param lengths:
-        :return:
+        Method of teaching RNN consisting of switching the previously predicted token by the token of the training set
+        for the next prediction. This reduces the divergence caused by the predictions
+        :param inputs: input tensor
+        :param h_0: context from the Encoder
+        :param lengths: lengths tensor
+        :return: output tensor
         '''
         inputs = inputs.transpose(1, 2)
         order = [i for i in range(inputs.shape[0])]
@@ -120,11 +121,11 @@ class Decoder(nn.Module):
 
     def forward(self, h_0, max_n, batch_size=1):
         '''
-        
-        :param h_0:
-        :param max_n:
-        :param batch_size:
-        :return:
+
+        :param h_0: Encoder hidden context tensor
+        :param max_n: Max length of prediction
+        :param batch_size: if you want to do batch predictions (not recommended)
+        :return: output string
         '''
         sos = self.embedding(torch.LongTensor([[self.sos] for i in range(batch_size)]).to(self.dev))
         output = [[] for i in range(batch_size)]

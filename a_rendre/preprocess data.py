@@ -47,14 +47,14 @@ if __name__=='__main__':
     tst_src = read_file(test_source)
     tst_tgt = read_file(test_target)
 
-    #The offset of 3 is used because the dataset comes with some tags at the beggining of each lines
+    #The offset of 1 is used because the dataset comes with some tags at the beggining of each lines
     for i in range(len(tst_src)):
-        tst_src[i] = clean_str(tst_src[i]).split()[3:]
-        tst_tgt[i] = clean_str(tst_tgt[i]).split()[3:tgt_max + 3]
+        tst_src[i] = clean_str(tst_src[i]).split()[1:]
+        tst_tgt[i] = clean_str(tst_tgt[i]).split()[1:tgt_max + 1]
 
     for i in range(len(trn_src)):
-        trn_src[i] = clean_str(trn_src[i]).split()[3:]
-        trn_tgt[i] = clean_str(trn_tgt[i]).split()[3:tgt_max + 3]
+        trn_src[i] = clean_str(trn_src[i]).split()[1:]
+        trn_tgt[i] = clean_str(trn_tgt[i]).split()[1:tgt_max + 1]
 
     #Vocabulary preprocessing
     vocab, count = voc(trn_src + trn_tgt)
